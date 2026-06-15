@@ -10,10 +10,11 @@ alongside this script.
 
 ## Prerequisites
 
-- [BorgBackup](https://www.borgbackup.org/) installed and available on `$PATH`
+- [BorgBackup](https://www.borgbackup.org/) installed.
 - Bash 4.0 or later
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths
+> **Warning:** backup user having sudo access to `borg` command without password prompt, probably done through visudo.
 
 ---
 

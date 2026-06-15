@@ -11,6 +11,7 @@ SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
+    echo -e "[ INFO ] .env file found, sourcing it's variables."
     source "$SHPWD/.env"
 fi
 
@@ -80,7 +81,7 @@ if [ ! -f "$BORG_REPO/config" ]; then
     fi
 fi
 
-info "Starting backup"
+echo -e "Starting backup"
 
 # Backup the most important directories into an archive named after
 # the machine this script is currently running on:
@@ -105,7 +106,7 @@ backup_exit=$?
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
 
-info "Pruning repository"
+echo -e "Pruning repository"
 
 borg prune \
     --list \
@@ -119,7 +120,7 @@ prune_exit=$?
 
 # actually free repo disk space by compacting segments
 
-info "Compacting repository"
+echo -e "Compacting repository"
 
 borg compact
 
@@ -130,11 +131,11 @@ global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))
 global_exit=$((compact_exit > global_exit ? compact_exit : global_exit))
 
 if [ ${global_exit} -eq 0 ]; then
-    info "Backup, Prune, and Compact finished successfully"
+    echo -e "Backup, Prune, and Compact finished successfully"
 elif [ ${global_exit} -eq 1 ]; then
-    info "Backup, Prune, and/or Compact finished with warnings"
+    echo -e "Backup, Prune, and/or Compact finished with warnings"
 else
-    info "Backup, Prune, and/or Compact finished with errors"
+    echo -e "Backup, Prune, and/or Compact finished with errors"
 fi
 
 exit ${global_exit}

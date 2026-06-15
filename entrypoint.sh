@@ -82,7 +82,7 @@ if [ ! -f "$BORG_REPO/config" ]; then
     fi
 fi
 
-echo -e "Starting backup"
+echo -e "[ INFO ] Starting backup"
 
 # Backup the most important directories into an archive named after
 # the machine this script is currently running on:
@@ -107,7 +107,7 @@ backup_exit=$?
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
 
-echo -e "Pruning repository"
+echo -e "[ INFO ] Pruning repository"
 
 borg prune \
     --list \
@@ -121,7 +121,7 @@ prune_exit=$?
 
 # actually free repo disk space by compacting segments
 
-echo -e "Compacting repository"
+echo -e "[ INFO ] Compacting repository"
 
 borg compact
 
@@ -132,11 +132,11 @@ global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))
 global_exit=$((compact_exit > global_exit ? compact_exit : global_exit))
 
 if [ ${global_exit} -eq 0 ]; then
-    echo -e "Backup, Prune, and Compact finished successfully"
+    echo -e "[ INFO ] Backup, Prune, and Compact finished successfully"
 elif [ ${global_exit} -eq 1 ]; then
-    echo -e "Backup, Prune, and/or Compact finished with warnings"
+    echo -e "[ WARN ] Backup, Prune, and/or Compact finished with warnings"
 else
-    echo -e "Backup, Prune, and/or Compact finished with errors"
+    echo -e "[ FATAL ] Backup, Prune, and/or Compact finished with errors \n\n[ EXIT ]"
 fi
 
 exit ${global_exit}

@@ -1,9 +1,10 @@
 # my-silly-borg
 
-Entrypoint for BorgBackup orchestration. Validates the runtime environment,
-ensures required directories exist, and initializes the Borg repository if not
-already present. Intended to run as the designated backup user (default: `backup`).
-Configuration is read from a `.env` file placed alongside this script.
+Entrypoint for the **my-silly-borg** portable BorgBackup orchestration script. Validates
+the runtime environment, ensures required directories exist, and initializes the
+Borg repository if not already present. Intended to run as the designated backup
+user (default: `backup`). Configuration is read from a `.env` file placed
+alongside this script.
 
 ---
 
@@ -18,40 +19,37 @@ Configuration is read from a `.env` file placed alongside this script.
 
 ## Configuration
 
-All variables can be overridden without editing the script by setting them in a
-`.env` file placed in the same directory as `entrypoint.sh`. Values defined
-there take precedence over the built-in defaults.
-
-### Variables
+All variables are set in a `.env` file placed in the same directory as
+`entrypoint.sh`. Values defined there take precedence over the built-in defaults.
 
 | Variable | Default | Description |
 |---|---|---|
 | `BACKUP_USER` | `backup` | User that must invoke the script |
 | `BACKUP_DESTINATION` | `/mnt/backup/data` | Root path of the Borg repository |
 | `BACKUP_LOG_STORAGE` | `/mnt/backup/log` | Directory for backup logs |
-| `BACKUP_PASSWORD` | *(see below)* | Passphrase for repository encryption |
+| `BACKUP_PASSWORD` | *(see note)* | Passphrase for repository encryption — **always override** |
+| `BACKUP_ITEMS` | `/home` | Colon-separated list of paths to archive |
 
 ### `BACKUP_PASSWORD`
 
-The script ships with a placeholder default password. **Always override it**
-via `.env` or the environment variable before use. Leaving the default in place
-means anyone who reads the script can decrypt the repository.
+The script ships with a placeholder default. **Always override it** before use —
+leaving the default in place means anyone who reads the script can decrypt the
+repository.
+
+### `BACKUP_ITEMS`
+
+Paths are separated by `:`, the same convention as `$PATH`. Spaces inside
+directory names are handled correctly:
 
 ```sh
-# .env
-BACKUP_PASSWORD='your-strong-passphrase-here'
+BACKUP_ITEMS='/home:/var/spaced dir:/etc'
 ```
 
-### `BACKUP_ITEMS` (`BKP_ITMS`)
+> **Warning:** any path whose name contains a `:` character will be split at
+> that point and treated as two separate entries, producing an incorrect backup.
+> Avoid paths with `:` in their name, or rename them before use.
 
-`BKP_ITMS` is declared as an empty array in the script. It must be populated
-with the paths to archive before `borg create` is invoked downstream. Add
-entries in your `.env` or in the calling script:
-
-```sh
-# .env
-BACKUP_ITEMS=(/etc /home /var/lib/postgresql)
-```
+If `BACKUP_ITEMS` is unset the script falls back to `/home`.
 
 ### `.env` example
 
@@ -60,6 +58,7 @@ BACKUP_USER='backup'
 BACKUP_DESTINATION='/mnt/backup/data'
 BACKUP_LOG_STORAGE='/mnt/backup/log'
 BACKUP_PASSWORD='your-strong-passphrase-here'
+BACKUP_ITEMS='/home:/etc:/var/lib/postgresql'
 ```
 
 ---
@@ -67,7 +66,7 @@ BACKUP_PASSWORD='your-strong-passphrase-here'
 ## Usage
 
 ```sh
-sudo -u backup ./entrypoint.sh
+sudo -u backup ./my-silly-borg/entrypoint.sh
 ```
 
 The script must be run as the user defined in `BACKUP_USER`. If invoked as any
@@ -78,7 +77,7 @@ other user it will exit immediately with `[ FATAL ]`.
 ## Directory structure
 
 ```
-.
+my-silly-borg/
 ├── entrypoint.sh       # this script
 ├── .env                # local configuration overrides (not committed)
 └── ...
@@ -92,34 +91,29 @@ At runtime the script expects (or will attempt to create):
 └── log/                # backup logs           (BACKUP_LOG_STORAGE)
 ```
 
-If either directory is absent, the script walks up the directory tree to
-verify write access before attempting to create them with `mkdir -p`. It exits
-with `[ FATAL ]` if neither the target nor any writable ancestor can be found.
+If either directory is absent, the script walks up the directory tree to verify
+write access before attempting to create them with `mkdir -p`. It exits with
+`[ FATAL ]` if neither the target nor any writable ancestor can be found.
 
 ---
 
 ## Encryption
 
-The repository is initialized with `repokey` encryption. Under this scheme the
-encryption key is stored inside the repository itself, protected by the
-passphrase set in `BACKUP_PASSWORD`. This means:
+The repository is initialized with `repokey` encryption. The key is stored
+inside the repository itself, protected by `BACKUP_PASSWORD`. This means:
 
 - The repository is unreadable without the passphrase.
 - **Back up the key** with `borg key export` after the first run — if the
-  repository is lost the key inside it is also lost.
-- The `BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK` variable is exported to
-  suppress Borg's interactive prompt when it cannot find an encryption marker
-  on an existing repo.
+  repository is lost, the key inside it is also lost.
+- `BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK` is exported to suppress Borg's
+  interactive prompt when it cannot find an encryption marker on an existing repo.
 
 ---
 
 ## Output levels
 
-All messages produced by the script are prefixed with one of three severity
-flags:
-
 | Flag | Meaning |
 |---|---|
 | `[ INFO ]` | Normal operation — no action required |
 | `[ WARN ]` | Recoverable condition — the script will attempt to continue |
-| `[ FATAL ]` | Unrecoverable error — always followed by `[ EXIT ]` and `exit 1` |
+| `[ FATAL ]` | Unrecoverable error — always followed by `[ EXIT ]` and a non-zero exit |

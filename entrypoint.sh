@@ -20,8 +20,9 @@ BKP_USER=${BACKUP_USER:-'backup'}                    # user that will orchestrat
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/data'}   # where the backup will be stored
 BKP_LOG_STG=${BACKUP_LOG_STORAGE:-'/mnt/backup/log'} # where the backup's logs will be stored
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}   # backup password
-if [ ${BACKUP_ITEMS:-} ]; then
-    read -ra BKP_ITMS <<<"${BKP_ITMS}"
+if [ "${BACKUP_ITEMS:-}" ]; then
+    IFS=':'
+    read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
 else
     BKP_ITMS=("/home")
 fi

@@ -19,7 +19,11 @@ BKP_USER=${BACKUP_USER:-'backup'}                    # user that will orchestrat
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/data'}   # where the backup will be stored
 BKP_LOG_STG=${BACKUP_LOG_STORAGE:-'/mnt/backup/log'} # where the backup's logs will be stored
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}   # backup password
-BKP_ITMS=()                                          # items to archive
+if [ ${BACKUP_ITEMS:-} ]; then
+    read -ra BKP_ITMS <<<"${BKP_ITMS}"
+else
+    BKP_ITMS=("/home")
+fi
 
 # ── Borg environment variables ────────────────────────────────────────────────
 export BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
@@ -29,9 +33,14 @@ export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 
+# Ensure the designated backup user exist.
+if ! id "$BKP_USER" >/dev/null 2>&1; then
+    echo "[ FATAL ] User $BACKUP_USER does not exist. \n\n[ EXIT ]"
+    exit 1
+fi
 # Ensure the script is running as the designated backup user.
 if [ "$(whoami)" != "$BKP_USER" ]; then
-    echo -e "[ FATAL ] Not $BKP_USER! \nExiting... \n\n[ EXIT ]"
+    echo -e "[ FATAL ] Not $BKP_USER! \n\n[ EXIT ]"
     exit 1
 fi
 
@@ -70,3 +79,62 @@ if [ ! -f "$BORG_REPO/config" ]; then
         exit 1
     fi
 fi
+
+info "Starting backup"
+
+# Backup the most important directories into an archive named after
+# the machine this script is currently running on:
+
+borg create \
+    --filter AME \
+    --list \
+    --stats \
+    --show-rc \
+    --compression zstd \
+    --exclude-caches \
+    --exclude 'home/*/.cache/*' \
+    --exclude 'var/tmp/*' \
+    \
+    ::'{hostname}-{now}' \
+    ${BKP_ITMS[@]}
+
+backup_exit=$?
+
+# Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
+# archives of THIS machine. The '{hostname}-*' matching is very important to
+# limit prune's operation to this machine's archives and not apply to
+# other machines' archives also:
+
+info "Pruning repository"
+
+borg prune \
+    --list \
+    --glob-archives '{hostname}-*' \
+    --show-rc \
+    --keep-daily 7 \
+    --keep-weekly 4 \
+    --keep-monthly 6
+
+prune_exit=$?
+
+# actually free repo disk space by compacting segments
+
+info "Compacting repository"
+
+borg compact
+
+compact_exit=$?
+
+# use highest exit code as global exit code
+global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))
+global_exit=$((compact_exit > global_exit ? compact_exit : global_exit))
+
+if [ ${global_exit} -eq 0 ]; then
+    info "Backup, Prune, and Compact finished successfully"
+elif [ ${global_exit} -eq 1 ]; then
+    info "Backup, Prune, and/or Compact finished with warnings"
+else
+    info "Backup, Prune, and/or Compact finished with errors"
+fi
+
+exit ${global_exit}

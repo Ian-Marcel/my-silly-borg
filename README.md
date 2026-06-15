@@ -1,4 +1,4 @@
-# BorgBackup Entrypoint
+# my-silly-borg
 
 Entrypoint for BorgBackup orchestration. Validates the runtime environment,
 ensures required directories exist, and initializes the Borg repository if not

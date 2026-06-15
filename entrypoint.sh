@@ -32,10 +32,14 @@ else
 fi
 
 # ── Borg environment variables ────────────────────────────────────────────────
-export BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
-export BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
-export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
-export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
+BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
+BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
+BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
+BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
+export BORG_REPO
+export BORG_PASSPHRASE
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK
+export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 

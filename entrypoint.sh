@@ -35,7 +35,7 @@ export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental
 
 # Ensure the designated backup user exist.
 if ! id "$BKP_USER" >/dev/null 2>&1; then
-    echo "[ FATAL ] User $BACKUP_USER does not exist. \n\n[ EXIT ]"
+    echo -e "[ FATAL ] User $BKP_USER does not exist. \n\n[ EXIT ]"
     exit 1
 fi
 # Ensure the script is running as the designated backup user.

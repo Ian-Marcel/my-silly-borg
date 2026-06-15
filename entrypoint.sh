@@ -91,15 +91,15 @@ echo -e "[ INFO ] Starting backup"
 # Backup the most important directories into an archive named after
 # the machine this script is currently running on:
 
-borg create \
+sudo borg create \
     --filter AME \
     --list \
     --stats \
     --show-rc \
     --compression zstd \
     --exclude-caches \
-    --exclude 'home/*/.cache/*' \
-    --exclude 'var/tmp/*' \
+    --exclude '*/.cache/*' \
+    --exclude '*/tmp/*' \
     \
     ::'{hostname}-{now}' \
     ${BKP_ITMS[@]}
@@ -113,7 +113,7 @@ backup_exit=$?
 
 echo -e "[ INFO ] Pruning repository"
 
-borg prune \
+sudo borg prune \
     --list \
     --glob-archives '{hostname}-*' \
     --show-rc \
@@ -127,7 +127,7 @@ prune_exit=$?
 
 echo -e "[ INFO ] Compacting repository"
 
-borg compact
+sudo borg compact
 
 compact_exit=$?
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+trap 'echo "Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?})" >&2' ERR
+
 # Tells where the script is located
 SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # check if .env file exists, main values can be edited here in the variables before the Borg-specific ones, but through .env is preferable
-if [ -e "$SHPWD/.env" -a -f "$SHPWD/.env" ]; then
+if [ -f "$SHPWD/.env" ]; then
     source "$SHPWD/.env"
 fi
 BKP_USER=${BACKUP_USER:-'backup'}                    # user that will orchestrate the backups

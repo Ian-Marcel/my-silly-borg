@@ -3,7 +3,7 @@
 # Abort on any error (-e), unset variable reference (-u), or pipe failure (-o pipefail).
 set -euo pipefail
 # On any error, print the script name, line number, failing command, and exit code to stderr.
-trap 'echo "Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?})" >&2' ERR
+trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?}) \n\n[ EXIT ]" >&2' ERR
 
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.

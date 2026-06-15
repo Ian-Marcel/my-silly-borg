@@ -96,6 +96,7 @@ echo -e "[ INFO ] Starting backup"
 # the machine this script is currently running on:
 
 sudo borg create \
+    --verborse \
     --filter AME \
     --list \
     --stats \
@@ -104,7 +105,7 @@ sudo borg create \
     --exclude-caches \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
-    ::'{hostname}-{now}' \
+    "$BORG_REPO"::{hostname}-{now} \
     ${BKP_ITMS[@]}
 
 backup_exit=$?

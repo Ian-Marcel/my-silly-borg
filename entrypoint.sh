@@ -104,7 +104,6 @@ sudo borg create \
     --exclude-caches \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
-    \
     ::'{hostname}-{now}' \
     ${BKP_ITMS[@]}
 

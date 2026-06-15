@@ -29,6 +29,7 @@ if ! [ -d "$BKP_DSTN" -o -d "$BKP_LOG_STG" ]; then
     elif ! [ -w "$BKP_DSTN_BASE" -o -w "$BKP_LOG_BASE" ]; then
         echo -e "The base of the backup's directories exists, yet:"
         echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
+        exit 1
     fi
     # Creates "$BKP_DSTN" "$BKP_LOG_STG" if not found
     echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."

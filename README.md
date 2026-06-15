@@ -14,7 +14,7 @@ alongside this script.
 - Bash 4.0 or later
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths
-> **Warning:** backup user having sudo access to `borg` command without password prompt, probably done through visudo.
+> **Warning:** backup user needs sudo access to `borg` command without password prompt, best done through visudo.
 
 ---
 

@@ -12,11 +12,18 @@ BKP_LOG_STG=${BACKUP_LOG_STORAGE:-'/mnt/backup/log'} # where the backup's logs w
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}   # backup password
 BKP_ITMS=()                                          # items that will be archived
 
+# Borg-specific variables
+export BORG_REPO="$BKP_DSTN"
+export BORG_PASSPHRASE="$BKP_PASSWD"
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO
+
 # Check if the right user is being used
-# if [ "$(whoami)" != "$BKP_USER" ]; then
-#     echo -e "Not $BKP_USER! \nExiting..."
-#     exit 1
-# fi
+if [ "$(whoami)" != "$BKP_USER" ]; then
+    echo -e "Not $BKP_USER! \nExiting..."
+    exit 1
+fi
+# Check if the folders exists
 if ! [ -d "$BKP_DSTN" -o -d "$BKP_LOG_STG" ]; then
     BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
     BKP_LOG_BASE=$(dirname "$BKP_LOG_STG")
@@ -34,4 +41,14 @@ if ! [ -d "$BKP_DSTN" -o -d "$BKP_LOG_STG" ]; then
     # Creates "$BKP_DSTN" "$BKP_LOG_STG" if not found
     echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
     mkdir -p "$BKP_DSTN" "$BKP_LOG_STG"
+fi
+
+# Initialize Borg repository if it doesn't exist
+if [ ! -f "$BORG_REPO/config" ]; then
+    echo "Initializing Borg repository at $BORG_REPO"
+    borg init -e repokey "$BORG_REPO"
+    if [ $? -ne 0 ]; then
+        echo "Failed to initialize Borg repository" >&2
+        exit 1
+    fi
 fi

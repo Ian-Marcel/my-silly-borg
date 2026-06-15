@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
 # Tells where the script is located
 SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-# check if .env file exists
+# check if .env file exists, main values can be edited here in the variables before the Borg-specific ones, but through .env is preferable
 if [ -e "$SHPWD/.env" -a -f "$SHPWD/.env" ]; then
     source "$SHPWD/.env"
 fi
@@ -23,17 +24,18 @@ if [ "$(whoami)" != "$BKP_USER" ]; then
     echo -e "Not $BKP_USER! \nExiting..."
     exit 1
 fi
+
 # Check if the folders exists
-if ! [ -d "$BKP_DSTN" -o -d "$BKP_LOG_STG" ]; then
+if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_STG" ]; then
     BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
     BKP_LOG_BASE=$(dirname "$BKP_LOG_STG")
     if ! [ -d "$BKP_DSTN_BASE" -o -d "$BKP_LOG_BASE" ]; then
         echo -e "The base of the backup's directories are non-existant! \nChecking if they're writable by $BKP_USER..."
-        if ! [ -w "$(dirname $BKP_DSTN_BASE)" -o -w "$(dirname $BKP_LOG_BASE)" ]; then
+        if ! [ -w "$(dirname "$BKP_DSTN_BASE")" ] || ! [ -w "$(dirname "$BKP_LOG_BASE")" ]; then
             echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
             exit 1
         fi
-    elif ! [ -w "$BKP_DSTN_BASE" -o -w "$BKP_LOG_BASE" ]; then
+    elif ! [ -w "$BKP_DSTN_BASE" ] || ! [ -w "$BKP_LOG_BASE" ]; then
         echo -e "The base of the backup's directories exists, yet:"
         echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
         exit 1

@@ -1,58 +1,72 @@
 #!/usr/bin/env bash
 
+# Abort on any error (-e), unset variable reference (-u), or pipe failure (-o pipefail).
 set -euo pipefail
+# On any error, print the script name, line number, failing command, and exit code to stderr.
 trap 'echo "Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?})" >&2' ERR
 
-# Tells where the script is located
+# Resolve the absolute path of the directory containing this script,
+# regardless of where it is invoked from.
 SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-# check if .env file exists, main values can be edited here in the variables before the Borg-specific ones, but through .env is preferable
+
+# Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
     source "$SHPWD/.env"
 fi
+
+# ── Backup configuration ──────────────────────────────────────────────────────
 BKP_USER=${BACKUP_USER:-'backup'}                    # user that will orchestrate the backups
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/data'}   # where the backup will be stored
 BKP_LOG_STG=${BACKUP_LOG_STORAGE:-'/mnt/backup/log'} # where the backup's logs will be stored
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}   # backup password
-BKP_ITMS=()                                          # items that will be archived
+BKP_ITMS=()                                          # items to archive
 
-# Borg-specific variables
-export BORG_REPO="$BKP_DSTN"
-export BORG_PASSPHRASE="$BKP_PASSWD"
-export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO
+# ── Borg environment variables ────────────────────────────────────────────────
+export BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
+export BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
+export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
 
-# Check if the right user is being used
+# ── Pre-flight checks ─────────────────────────────────────────────────────────
+
+# Ensure the script is running as the designated backup user.
 if [ "$(whoami)" != "$BKP_USER" ]; then
-    echo -e "Not $BKP_USER! \nExiting..."
+    echo -e "[ FATAL ] Not $BKP_USER! \nExiting... \n\n[ EXIT ]"
     exit 1
 fi
 
-# Check if the folders exists
+# Ensure the backup destination and log storage directories both exist.
+# If either is absent, walk up the directory tree to verify write access
+# before attempting to create them.
 if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_STG" ]; then
     BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
     BKP_LOG_BASE=$(dirname "$BKP_LOG_STG")
+
+    # Parent directories are also absent — check one level higher for write access.
     if ! [ -d "$BKP_DSTN_BASE" -o -d "$BKP_LOG_BASE" ]; then
-        echo -e "The base of the backup's directories are non-existant! \nChecking if they're writable by $BKP_USER..."
+        echo -e "[ WARN ] The base of the backup's directories are non-existant! \nChecking if they're writable by $BKP_USER..."
         if ! [ -w "$(dirname "$BKP_DSTN_BASE")" ] || ! [ -w "$(dirname "$BKP_LOG_BASE")" ]; then
-            echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
+            echo -e "[ FATAL ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
             exit 1
         fi
+    # Parent directories exist but the backup user lacks write permission.
     elif ! [ -w "$BKP_DSTN_BASE" ] || ! [ -w "$BKP_LOG_BASE" ]; then
-        echo -e "The base of the backup's directories exists, yet:"
+        echo -e "[ FATAL ] The base of the backup's directories exists, yet:"
         echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
         exit 1
     fi
-    # Creates "$BKP_DSTN" "$BKP_LOG_STG" if not found
-    echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
+
+    # Write access confirmed — create any missing directories.
+    echo -e "[ INFO ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
     mkdir -p "$BKP_DSTN" "$BKP_LOG_STG"
 fi
 
-# Initialize Borg repository if it doesn't exist
+# Initialize a new Borg repository if no config file is found at the repo path.
 if [ ! -f "$BORG_REPO/config" ]; then
-    echo "Initializing Borg repository at $BORG_REPO"
+    echo "[ INFO ] Initializing Borg repository at $BORG_REPO"
     borg init -e repokey "$BORG_REPO"
     if [ $? -ne 0 ]; then
-        echo "Failed to initialize Borg repository" >&2
+        echo -e "[ FATAL ] Failed to initialize Borg repository \n\n[ EXIT ]" >&2
         exit 1
     fi
 fi

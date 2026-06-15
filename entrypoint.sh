@@ -105,7 +105,7 @@ sudo borg create \
     --exclude-caches \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
-    "$BORG_REPO"::{hostname}-{now} \
+    ::{hostname}-{now} \
     ${BKP_ITMS[@]}
 
 backup_exit=$?

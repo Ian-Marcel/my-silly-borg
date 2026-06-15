@@ -5,7 +5,7 @@ set -euo pipefail
 # On any error, print the script name, line number, failing command, and exit code to stderr.
 trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?}) \n\n[ EXIT ]" >&2' ERR
 if ! command -v borg >&2; then
-    echo -e "[ FATAL ] borgbackup \`borg\` was not found! Install it. \n\n[ EXIT ]"
+    echo -e "[ FATAL ] borgbackup's command \`borg\` was not found! Install it. \n\n[ EXIT ]"
     exit 1
 fi
 

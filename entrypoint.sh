@@ -7,19 +7,28 @@ trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_CO
 
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.
-readonly SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
-    echo -e "[ INFO ] .env file found."
     source "$SHPWD/.env"
 fi
 
 # ── Backup configuration ──────────────────────────────────────────────────────
-readonly BKP_USER=${BACKUP_USER:-'backup'}                                # user that will orchestrate the backups
-readonly BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/my-silly-borg'}      # where the backup will be stored
+# Bash’s printf has a built-in method of getting the date which can be used in
+# place of the date command.
+date() {
+    # Usage: date "format"
+    # See: 'man strftime' for format.
+    printf "%($1)T\\n" "-1"
+}
+BKP_USER=${BACKUP_USER:-'backup'}                                         # user that will orchestrate the backups
+BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/my-silly-borg'}               # where the backup will be stored
 readonly BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
-readonly BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}               # backup password
+readonly ARCHIVE_NAME=$(hostname)_$(date %Y-%m-%d)
+readonly LOG_FILE="${BKP_LOG_DSTN}/${ARCHIVE_NAME}.log"
+
+BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
 if [ -n "$BACKUP_ITEMS" ]; then
     IFS=':'
     read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
@@ -27,16 +36,17 @@ else
     BKP_ITMS=("/home")
 fi
 
+exec &> >(tee "${LOG_FILE}")
+
+if [ -f "$SHPWD/.env" ]; then
+    echo -e "[ INFO ] .env file found, switching default values to .env's values."
+fi
+
 # ── Borg environment variables ────────────────────────────────────────────────
-readonly BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
-readonly BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
-readonly BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
-readonly BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
-# Exporting
-export BORG_REPO="$BKP_DSTN"
-export BORG_PASSPHRASE="$BKP_PASSWD"
-export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO
+export BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
+export BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
+export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
 if ! command -v borg >/dev/null 2>&1; then

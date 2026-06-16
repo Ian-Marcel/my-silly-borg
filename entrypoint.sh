@@ -25,12 +25,12 @@ date() {
 BKP_USER=${BACKUP_USER:-'backup'}                                         # user that will orchestrate the backups
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/my-silly-borg'}               # where the backup will be stored
 readonly BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
-readonly ARCHIVE_NAME=$(hostname)_$(date %Y-%m-%d)
+readonly ARCHIVE_NAME=$(hostname)_$(date %Y-%m-%d-%l:%M-%p)
 readonly LOG_FILE="${BKP_LOG_DSTN}/${ARCHIVE_NAME}.log"
 
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
 if [ -n "$BACKUP_ITEMS" ]; then
-    IFS=':'
+    IFS=';'
     read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
 else
     BKP_ITMS=("/home")

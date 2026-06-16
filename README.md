@@ -14,6 +14,7 @@ alongside this script.
 - Bash 4.0 or later
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths
+
 > **Warning:** backup user needs sudo access to `borg` command without password prompt, best done through visudo.
 
 ---
@@ -39,16 +40,16 @@ repository.
 
 ### `BACKUP_ITEMS`
 
-Paths are separated by `:`, the same convention as `$PATH`. Spaces inside
+Paths are separated by `;`, the same convention as `$PATH`. Spaces inside
 directory names are handled correctly:
 
 ```sh
-BACKUP_ITEMS='/home:/var/spaced dir:/etc'
+BACKUP_ITEMS='/home;/var/spaced dir;/etc'
 ```
 
-> **Warning:** any path whose name contains a `:` character will be split at
+> **Warning;** any path whose name contains a `;` character will be split at
 > that point and treated as two separate entries, producing an incorrect backup.
-> Avoid paths with `:` in their name, or rename them before use.
+> Avoid paths with `;` in their name, or rename them before use.
 
 If `BACKUP_ITEMS` is unset the script falls back to `/home`.
 

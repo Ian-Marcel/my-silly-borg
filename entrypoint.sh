@@ -92,7 +92,6 @@ echo -e "[ INFO ] Starting backup"
 # the machine this script is currently running on:
 
 sudo -E borg create \
-    --verborse \
     --filter AME \
     --list \
     --stats \

@@ -126,7 +126,7 @@ backup_exit=$?
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
 
-echo -e "[ INFO ] Pruning repository\n"
+echo -e "\n[ INFO ] Pruning repository\n"
 
 sudo -E borg prune \
     --list \
@@ -140,7 +140,7 @@ prune_exit=$?
 
 # actually free repo disk space by compacting segments
 
-echo -e "[ INFO ] Compacting repository\n"
+echo -e "\n[ INFO ] Compacting repository\n"
 
 sudo -E borg compact
 
@@ -150,6 +150,7 @@ compact_exit=$?
 global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))
 global_exit=$((compact_exit > global_exit ? compact_exit : global_exit))
 
+echo " "
 if [ ${global_exit} -eq 0 ]; then
     echo -e "[ INFO ] Backup, Prune, and Compact finished successfully"
 elif [ ${global_exit} -eq 1 ]; then

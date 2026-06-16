@@ -102,8 +102,7 @@ if [ ! -f "$BORG_REPO/config" ]; then
 fi
 
 # Initialize the backup
-echo -e "[ INFO ] Starting backup"
-
+echo -e "[ INFO ] Starting backup\n"
 # Backup the most important directories into an archive named after
 # the machine this script is currently running on:
 
@@ -117,8 +116,8 @@ sudo -E borg create \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
     --noatime \
-    ::'{hostname}-{now}' \
-    ${BKP_ITMS[@]} >/dev/null 2>&1
+    ::"$ARCHIVE_NAME" \
+    ${BKP_ITMS[@]}
 
 backup_exit=$?
 
@@ -127,7 +126,7 @@ backup_exit=$?
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
 
-echo -e "[ INFO ] Pruning repository"
+echo -e "[ INFO ] Pruning repository\n"
 
 sudo -E borg prune \
     --list \
@@ -135,15 +134,15 @@ sudo -E borg prune \
     --show-rc \
     --keep-daily 7 \
     --keep-weekly 4 \
-    --keep-monthly 6 >/dev/null 2>&1
+    --keep-monthly 6
 
 prune_exit=$?
 
 # actually free repo disk space by compacting segments
 
-echo -e "[ INFO ] Compacting repository"
+echo -e "[ INFO ] Compacting repository\n"
 
-sudo -E borg compact >/dev/null 2>&1
+sudo -E borg compact
 
 compact_exit=$?
 

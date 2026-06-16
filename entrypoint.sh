@@ -93,6 +93,7 @@ echo -e "[ INFO ] Starting backup"
 # the machine this script is currently running on:
 
 sudo -E borg create \
+    --error \
     --filter AME \
     --list \
     --stats \
@@ -103,7 +104,7 @@ sudo -E borg create \
     --exclude '*/tmp/*' \
     --noatime \
     ::'{hostname}-{now}' \
-    ${BKP_ITMS[@]} >/dev/null
+    ${BKP_ITMS[@]}
 
 backup_exit=$?
 
@@ -115,12 +116,13 @@ backup_exit=$?
 echo -e "[ INFO ] Pruning repository"
 
 sudo -E borg prune \
+    --error \
     --list \
     --glob-archives '{hostname}-*' \
     --show-rc \
     --keep-daily 7 \
     --keep-weekly 4 \
-    --keep-monthly 6 >/dev/null
+    --keep-monthly 6
 
 prune_exit=$?
 
@@ -128,7 +130,7 @@ prune_exit=$?
 
 echo -e "[ INFO ] Compacting repository"
 
-sudo -E borg compact >/dev/null
+sudo -E borg --error compact
 
 compact_exit=$?
 

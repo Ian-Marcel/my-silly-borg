@@ -93,7 +93,7 @@ echo -e "[ INFO ] Starting backup"
 # the machine this script is currently running on:
 
 sudo -E borg create \
-    --error \
+    --critical \
     --filter AME \
     --list \
     --stats \
@@ -116,7 +116,7 @@ backup_exit=$?
 echo -e "[ INFO ] Pruning repository"
 
 sudo -E borg prune \
-    --error \
+    --critical \
     --list \
     --glob-archives '{hostname}-*' \
     --show-rc \
@@ -130,7 +130,7 @@ prune_exit=$?
 
 echo -e "[ INFO ] Compacting repository"
 
-sudo -E borg --error compact
+sudo -E borg --critical compact
 
 compact_exit=$?
 

@@ -20,7 +20,7 @@ readonly BKP_USER=${BACKUP_USER:-'backup'}                                # user
 readonly BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/my-silly-borg'}      # where the backup will be stored
 readonly BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
 readonly BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}               # backup password
-if [ "${BACKUP_ITEMS:-}" ]; then
+if [ -n "$BACKUP_ITEMS" ]; then
     IFS=':'
     read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
 else

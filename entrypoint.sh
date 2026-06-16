@@ -86,6 +86,7 @@ if [ ! -f "$BORG_REPO/config" ]; then
     fi
 fi
 
+# Initialize the backup
 echo -e "[ INFO ] Starting backup"
 
 # Backup the most important directories into an archive named after
@@ -100,8 +101,9 @@ sudo -E borg create \
     --exclude-caches \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
+    --noatime \
     ::'{hostname}-{now}' \
-    ${BKP_ITMS[@]}
+    ${BKP_ITMS[@]} >/dev/null
 
 backup_exit=$?
 
@@ -118,7 +120,7 @@ sudo -E borg prune \
     --show-rc \
     --keep-daily 7 \
     --keep-weekly 4 \
-    --keep-monthly 6
+    --keep-monthly 6 >/dev/null
 
 prune_exit=$?
 
@@ -126,7 +128,7 @@ prune_exit=$?
 
 echo -e "[ INFO ] Compacting repository"
 
-sudo -E borg compact
+sudo -E borg compact >/dev/null
 
 compact_exit=$?
 

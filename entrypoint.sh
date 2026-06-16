@@ -4,26 +4,22 @@
 set -euo pipefail
 # On any error, print the script name, line number, failing command, and exit code to stderr.
 trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?}) \n\n[ EXIT ]" >&2' ERR
-if ! command -v borg >/dev/null 2>&1; then
-    echo -e "[ FATAL ] borgbackup's command \`borg\` was not found! Install it. \n\n[ EXIT ]"
-    exit 1
-fi
 
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.
-SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+readonly SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
-    echo -e "[ INFO ] .env file found, sourcing it's variables."
+    echo -e "[ INFO ] .env file found."
     source "$SHPWD/.env"
 fi
 
 # ── Backup configuration ──────────────────────────────────────────────────────
-BKP_USER=${BACKUP_USER:-'backup'}                    # user that will orchestrate the backups
-BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/data'}   # where the backup will be stored
-BKP_LOG_STG=${BACKUP_LOG_STORAGE:-'/mnt/backup/log'} # where the backup's logs will be stored
-BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}   # backup password
+readonly BKP_USER=${BACKUP_USER:-'backup'}                                # user that will orchestrate the backups
+readonly BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/backup/my-silly-borg'}      # where the backup will be stored
+readonly BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
+readonly BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'}               # backup password
 if [ "${BACKUP_ITEMS:-}" ]; then
     IFS=':'
     read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
@@ -32,12 +28,21 @@ else
 fi
 
 # ── Borg environment variables ────────────────────────────────────────────────
-export BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
-export BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
-export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
-export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
+readonly BORG_REPO="$BKP_DSTN"                          # path Borg treats as the repository root
+readonly BORG_PASSPHRASE="$BKP_PASSWD"                  # passphrase used to unlock repository encryption
+readonly BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes # suppress the prompt when no encryption marker is found
+readonly BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO           # guard against accidental destructive Borg operations
+# Exporting
+export BORG_REPO="$BKP_DSTN"
+export BORG_PASSPHRASE="$BKP_PASSWD"
+export BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+export BORG_CHECK_I_KNOW_WHAT_I_AM_DOING=NO
 
 # ── Pre-flight checks ─────────────────────────────────────────────────────────
+if ! command -v borg >/dev/null 2>&1; then
+    echo -e "[ FATAL ] borgbackup's command \`borg\` was not found! Install it. \n\n[ EXIT ]"
+    exit 1
+fi
 
 # Ensure the designated backup user exist.
 if ! id "$BKP_USER" >/dev/null 2>&1; then
@@ -53,9 +58,9 @@ fi
 # Ensure the backup destination and log storage directories both exist.
 # If either is absent, walk up the directory tree to verify write access
 # before attempting to create them.
-if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_STG" ]; then
+if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_DSTN" ]; then
     BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
-    BKP_LOG_BASE=$(dirname "$BKP_LOG_STG")
+    BKP_LOG_BASE=$(dirname "$BKP_LOG_DSTN")
 
     # Parent directories are also absent — check one level higher for write access.
     if ! [ -d "$BKP_DSTN_BASE" -o -d "$BKP_LOG_BASE" ]; then
@@ -73,7 +78,7 @@ if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_STG" ]; then
 
     # Write access confirmed — create any missing directories.
     echo -e "[ INFO ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
-    mkdir -p "$BKP_DSTN" "$BKP_LOG_STG"
+    mkdir -p "$BKP_DSTN" "$BKP_LOG_DSTN"
 fi
 
 # Initialize a new Borg repository if no config file is found at the repo path.

@@ -25,7 +25,7 @@ date() {
 BKP_USER=${BACKUP_USER:-'backup'}                                # user that will orchestrate the backups
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}             # where the backup will be stored
 BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
-ARCHV_NM=${ARCHIVE_NAME:-$(hostname)_$(date %Y-%m-%dT%H:%M:%S)}
+ARCHV_NM=$(hostname)_$(date %Y-%m-%dT%H:%M:%S)
 LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
 if [ -n "$BACKUP_ITEMS" ]; then
@@ -120,7 +120,7 @@ sudo -E borg create \
 backup_exit=$?
 
 # Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
-# archives of THIS machine. The '{hostname}-*' matching is very important to
+# archives of THIS machine. The '{hostname}_*' matching is very important to
 # limit prune's operation to this machine's archives and not apply to
 # other machines' archives also:
 
@@ -129,7 +129,7 @@ echo -e "\n[ INFO ] Pruning repository\n"
 sudo -E borg prune \
     --verbose \
     --list \
-    --glob-archives '{hostname}-*' \
+    --glob-archives '{hostname}_*' \
     --show-rc \
     --keep-daily 7 \
     --keep-weekly 4 \

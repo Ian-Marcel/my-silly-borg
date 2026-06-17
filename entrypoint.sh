@@ -156,7 +156,7 @@ for file in "${BKP_LOG_DSTN}"/*.log; do
         ((DELED_LOGS++))
     fi
 done
-if ((DELED_LOGS = 0)); then
+if [ $DELED_LOGS -eq 0 ]; then
     echo "[ INFO ] No logs removed"
 fi
 

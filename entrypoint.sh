@@ -3,7 +3,7 @@
 # Abort on any error (-e), unset variable reference (-u), or pipe failure (-o pipefail).
 set -euo pipefail
 # On any error, print the script name, line number, failing command, and exit code to stderr.
-trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} (exit ${?}) \n\n[ EXIT ]" >&2' ERR
+trap 'echo -e "[ FATAL ] Error in ${BASH_SOURCE[0]} at line ${LINENO}: ${BASH_COMMAND} \n\n[ EXIT ${?} ]" >&2' ERR
 
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.
@@ -25,8 +25,8 @@ date() {
 BKP_USER=${BACKUP_USER:-'backup'}                                # user that will orchestrate the backups
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}             # where the backup will be stored
 BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
-ARCHIVE_NAME=$(hostname)_$(date %Y-%m-%d-%l:%M-%p)
-LOG_FILE="${BKP_LOG_DSTN}/${ARCHIVE_NAME}.log"
+ARCHV_NM=${ARCHIVE_NAME:-$(hostname)_$(date %Y-%m-%dT%H:%M:%S)}
+LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
 if [ -n "$BACKUP_ITEMS" ]; then
     IFS=';'
@@ -115,7 +115,7 @@ sudo -E borg create \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
     --noatime \
-    ::"$ARCHIVE_NAME" \
+    ::"$ARCHV_NM" \
     ${BKP_ITMS[@]}
 
 backup_exit=$?
@@ -144,6 +144,13 @@ echo -e "\n[ INFO ] Compacting repository\n"
 sudo -E borg compact
 
 compact_exit=$?
+
+mapfile -t ALL_BACKUPS < <(sudo -E borg list --short)
+for file in "${BKP_LOG_DSTN}"/*.log; do
+    if [[ ! ${ALL_BACKUPS[*]} =~ $(basename "${file}" | sed 's/.log//g') ]]; then
+        rm --verbose "${file}"
+    fi
+done
 
 # use highest exit code as global exit code
 global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))

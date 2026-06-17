@@ -114,7 +114,6 @@ sudo -E borg create \
     --exclude-caches \
     --exclude '*/.cache/*' \
     --exclude '*/tmp/*' \
-    --noatime \
     ::"$ARCHV_NM" \
     ${BKP_ITMS[@]}
 

@@ -141,9 +141,11 @@ prune_exit=$?
 
 echo -e "\n[ INFO ] Compacting repository\n"
 
-sudo -E borg compact
+sudo -E borg compact --verbose
 
 compact_exit=$?
+
+echo -e "\n[ INFO ] Removing old logs\n"
 
 mapfile -t ALL_BACKUPS < <(sudo -E borg list --short)
 for file in "${BKP_LOG_DSTN}"/*.log; do

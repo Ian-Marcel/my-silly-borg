@@ -128,6 +128,7 @@ backup_exit=$?
 echo -e "\n[ INFO ] Pruning repository\n"
 
 sudo -E borg prune \
+    --verbose \
     --list \
     --glob-archives '{hostname}-*' \
     --show-rc \
@@ -145,14 +146,19 @@ sudo -E borg compact --verbose
 
 compact_exit=$?
 
-echo -e "\n[ INFO ] Removing old logs\n"
+echo -e "\n[ INFO ] Removing old logs"
 
 mapfile -t ALL_BACKUPS < <(sudo -E borg list --short)
+DELED_LOGS=0
 for file in "${BKP_LOG_DSTN}"/*.log; do
     if [[ ! ${ALL_BACKUPS[*]} =~ $(basename "${file}" | sed 's/.log//g') ]]; then
         rm --verbose "${file}"
+        ((DELED_LOGS++))
     fi
 done
+if ((DELED_LOGS > 0)); then
+    echo "[ INFO ] No logs removed"
+fi
 
 # use highest exit code as global exit code
 global_exit=$((backup_exit > prune_exit ? backup_exit : prune_exit))

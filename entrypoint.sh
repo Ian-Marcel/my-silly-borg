@@ -152,7 +152,7 @@ DELED_LOGS=0
 for file in "${BKP_LOG_DSTN}"/*.log; do
     if [[ ! ${ALL_BACKUPS[*]} =~ $(basename "${file}" | sed 's/.log//g') ]]; then
         rm --verbose "${file}"
-        ((DELED_LOGS++))
+        DELED_LOGS=$((DELED_LOGS + 1))
     fi
 done
 if [ $DELED_LOGS -eq 0 ]; then

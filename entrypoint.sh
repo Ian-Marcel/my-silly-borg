@@ -35,7 +35,7 @@ else
     BKP_ITMS=("/home")
 fi
 
-case "$1" in
+case "${1:-}" in
 --quiet | -q)
     # Quiet mode: save to log file only (no live output)
     exec &>"${LOG_FILE}"

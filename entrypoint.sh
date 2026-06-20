@@ -35,7 +35,18 @@ else
     BKP_ITMS=("/home")
 fi
 
-exec &> >(tee "${LOG_FILE}")
+case "$1" in
+--quiet | -q)
+    # Quiet mode: save to log file only (no live output)
+    exec &>"${LOG_FILE}"
+    echo "Running in quiet mode (output saved to ${LOG_FILE})"
+    ;;
+*)
+    # Normal mode: show live output AND save to log file
+    exec &> >(tee "${LOG_FILE}")
+    echo "Running in normal mode (live output + saved to ${LOG_FILE})"
+    ;;
+esac
 
 if [ -f "$SHPWD/.env" ]; then
     echo -e "[ INFO ] .env file found, switching default values to .env's values."

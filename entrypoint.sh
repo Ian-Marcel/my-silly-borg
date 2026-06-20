@@ -50,12 +50,12 @@ esac
 
 if [ -f "$SHPWD/.env" ]; then
     echo -e "[ INFO ] .env file found, switching default values to .env's values."
-fi
-PERMS=$(stat -c '%a' "$SHPWD/.env" 2>/dev/null || stat -f '%A' "$SHPWD/.env" 2>/dev/null)
-# Check if permissions are 600 or stricter (smaller octal value)
-if [ "$PERMS" -gt 600 ]; then
-    echo -e "[ FATAL ] .env file permissions are $PERMS, which is too loose (max allowed: 600). \n\n[ EXIT 1 ]"
-    exit 1
+    # Check if permissions are 600 or stricter (smaller octal value)
+    PERMS=$(stat -c '%a' "$SHPWD/.env" 2>/dev/null || stat -f '%A' "$SHPWD/.env" 2>/dev/null)
+    if [ "$PERMS" -gt 600 ]; then
+        echo -e "[ FATAL ] .env file permissions are $PERMS, which is too loose (max allowed: 600). \n\n[ EXIT 1 ]"
+        exit 1
+    fi
 fi
 
 # ── Borg environment variables ────────────────────────────────────────────────

@@ -15,7 +15,10 @@ alongside this script.
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths
 
-> **Warning:** backup user needs sudo access to `borg` command without password prompt, best done through visudo.
+> [!warning]
+> backup user needs sudo access to `borg` command without password prompt and envirioment inheritance, best done through visudo.
+> 
+> Example: `backup ALL=(ALL) NOPASSWD: SETENV: /usr/bin/borg`
 
 ---
 

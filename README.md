@@ -10,7 +10,7 @@ alongside this script.
 
 ## Prerequisites
 
-- [BorgBackup](https://www.borgbackup.org/) installed (the script seek and attempts to install it if not found).
+- [BorgBackup](https://www.borgbackup.org/) installed (the script will attempt to install it if not found).
 - Bash 4.0 or later
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths

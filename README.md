@@ -43,14 +43,15 @@ repository.
 
 ### `BACKUP_ITEMS`
 
-Paths are separated by `;`, the same convention as `$PATH`. Spaces inside
+Paths are separated by `;`, a similar convention as `$PATH`. Spaces inside
 directory names are handled correctly:
 
 ```sh
 BACKUP_ITEMS='/home;/var/spaced dir;/etc'
 ```
 
-> **Warning;** any path whose name contains a `;` character will be split at
+> [!Warning]
+>  any path whose name contains a `;` character will be split at
 > that point and treated as two separate entries, producing an incorrect backup.
 > Avoid paths with `;` in their name, or rename them before use.
 
@@ -63,7 +64,7 @@ BACKUP_USER='backup'
 BACKUP_DESTINATION='/mnt/backup/data'
 BACKUP_LOG_STORAGE='/mnt/backup/log'
 BACKUP_PASSWORD='your-strong-passphrase-here'
-BACKUP_ITEMS='/home:/etc:/var/lib/postgresql'
+BACKUP_ITEMS='/home;/etc;/var/lib/postgresql'
 ```
 
 ---

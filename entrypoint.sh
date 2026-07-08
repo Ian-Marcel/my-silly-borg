@@ -149,9 +149,10 @@ sudo -E borg prune \
     --list \
     --glob-archives '{hostname}_*' \
     --show-rc \
-    --keep-daily 7 \
-    --keep-weekly 4 \
-    --keep-monthly 6
+    --keep-hourly ${KEEP_HOURLY:-0} \
+    --keep-daily ${KEEP_DAILY:-7} \
+    --keep-weekly ${KEEP_WEEKLY:-4} \
+    --keep-monthly ${KEEP_MONTHLY:-6}
 
 prune_exit=$?
 

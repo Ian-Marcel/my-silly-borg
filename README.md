@@ -10,14 +10,14 @@ alongside this script.
 
 ## Prerequisites
 
-- [BorgBackup](https://www.borgbackup.org/) installed.
+- [BorgBackup](https://www.borgbackup.org/) installed (the script seek and attempts to install it if not found).
 - Bash 4.0 or later
 - A dedicated system user to run backups (default: `backup`)
 - Write access to the intended backup destination and log storage paths
 
 > [!warning]
 > backup user needs sudo access to `borg` command without password prompt and envirioment inheritance, best done through visudo.
-> 
+>
 > Example: `backup ALL=(ALL) NOPASSWD: SETENV: /usr/bin/borg`
 
 ---
@@ -51,7 +51,7 @@ BACKUP_ITEMS='/home;/var/spaced dir;/etc'
 ```
 
 > [!Warning]
->  any path whose name contains a `;` character will be split at
+> any path whose name contains a `;` character will be split at
 > that point and treated as two separate entries, producing an incorrect backup.
 > Avoid paths with `;` in their name, or rename them before use.
 

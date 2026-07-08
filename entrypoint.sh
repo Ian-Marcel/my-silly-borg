@@ -48,6 +48,18 @@ case "${1:-}" in
     ;;
 esac
 
+if ! command -v ffmpeg >/dev/null 2>&1; then
+    echo -e "[ WARN ] borgbackup wasn't found, attempting to install it."
+    sudo apt update >/dev/null 2>&1 && sudo apt install -y borgbackup >/dev/null 2>&1 ||
+        sudo dnf install -y --quiet borgbackup >/dev/null 2>&1 ||
+        sudo pacman -Sy --noconfirm --quiet borgbackup >/dev/null 2>&1
+    if [ $? -gt 1 ]; then
+        echo -e "[ FATAL ] Failed to install borgbackup. \n\n[ EXIT ]"
+        exit 2
+    fi
+
+fi
+
 if [ -f "$SHPWD/.env" ]; then
     echo -e "[ INFO ] .env file found, switching default values to .env's values."
     # Check if permissions are 600 or stricter (smaller octal value)

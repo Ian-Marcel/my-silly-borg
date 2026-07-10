@@ -8,6 +8,7 @@
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.
 SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
+SHPWD=$(realpath "$SHPWD")
 
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then

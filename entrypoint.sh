@@ -48,7 +48,7 @@ case "${1:-}" in
     ;;
 esac
 
-if ! command -v ffmpeg >/dev/null 2>&1; then
+if ! command -v borg >/dev/null 2>&1; then
     echo -e "[ WARN ] borgbackup wasn't found, attempting to install it."
     sudo apt update >/dev/null 2>&1 && sudo apt install -y borgbackup >/dev/null 2>&1 ||
         sudo dnf install -y --quiet borgbackup >/dev/null 2>&1 ||

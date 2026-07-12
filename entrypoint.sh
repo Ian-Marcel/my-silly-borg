@@ -36,6 +36,32 @@ else
     BKP_ITMS=("/home")
 fi
 
+# Ensure the backup destination and log storage directories both exist.
+# If either is absent, walk up the directory tree to verify write access
+# before attempting to create them.
+if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_DSTN" ]; then
+    BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
+    BKP_LOG_BASE=$(dirname "$BKP_LOG_DSTN")
+
+    # Parent directories are also absent — check one level higher for write access.
+    if ! [ -d "$BKP_DSTN_BASE" -o -d "$BKP_LOG_BASE" ]; then
+        echo -e "[ WARN ] The base of the backup's directories are non-existant! \nChecking if they're writable by $BKP_USER..."
+        if ! [ -w "$(dirname "$BKP_DSTN_BASE")" ] || ! [ -w "$(dirname "$BKP_LOG_BASE")" ]; then
+            echo -e "[ FATAL ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
+            exit 1
+        fi
+    # Parent directories exist but the backup user lacks write permission.
+    elif ! [ -w "$BKP_DSTN_BASE" ] || ! [ -w "$BKP_LOG_BASE" ]; then
+        echo -e "[ FATAL ] The base of the backup's directories exists, yet:"
+        echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
+        exit 1
+    fi
+
+    # Write access confirmed — create any missing directories.
+    echo -e "[ INFO ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
+    mkdir -p "$BKP_DSTN" "$BKP_LOG_DSTN"
+fi
+
 case "${1:-}" in
 --quiet | -q)
     # Quiet mode: save to log file only (no live output)
@@ -92,32 +118,6 @@ fi
 if [ "$(whoami)" != "$BKP_USER" ]; then
     echo -e "[ FATAL ] Not $BKP_USER! \n\n[ EXIT ]"
     exit 1
-fi
-
-# Ensure the backup destination and log storage directories both exist.
-# If either is absent, walk up the directory tree to verify write access
-# before attempting to create them.
-if ! [ -d "$BKP_DSTN" ] || ! [ -d "$BKP_LOG_DSTN" ]; then
-    BKP_DSTN_BASE=$(dirname "$BKP_DSTN")
-    BKP_LOG_BASE=$(dirname "$BKP_LOG_DSTN")
-
-    # Parent directories are also absent — check one level higher for write access.
-    if ! [ -d "$BKP_DSTN_BASE" -o -d "$BKP_LOG_BASE" ]; then
-        echo -e "[ WARN ] The base of the backup's directories are non-existant! \nChecking if they're writable by $BKP_USER..."
-        if ! [ -w "$(dirname "$BKP_DSTN_BASE")" ] || ! [ -w "$(dirname "$BKP_LOG_BASE")" ]; then
-            echo -e "[ FATAL ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
-            exit 1
-        fi
-    # Parent directories exist but the backup user lacks write permission.
-    elif ! [ -w "$BKP_DSTN_BASE" ] || ! [ -w "$BKP_LOG_BASE" ]; then
-        echo -e "[ FATAL ] The base of the backup's directories exists, yet:"
-        echo -e "Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nCoundn't be created. \n\n[ EXIT ]"
-        exit 1
-    fi
-
-    # Write access confirmed — create any missing directories.
-    echo -e "[ INFO ] Either backup's: \n  - Destination directory \n  - Log directory \n  - Both \nNot found. \nCreating..."
-    mkdir -p "$BKP_DSTN" "$BKP_LOG_DSTN"
 fi
 
 # Initialize a new Borg repository if no config file is found at the repo path.

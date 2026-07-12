@@ -7,8 +7,8 @@
 
 # Resolve the absolute path of the directory containing this script,
 # regardless of where it is invoked from.
-SHPWD=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
-SHPWD=$(realpath "$SHPWD")
+SHPWD=$(realpath "$0")
+SHPWD=$(dirname "$SHPWD")
 
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
@@ -23,9 +23,9 @@ date() {
     # See: 'man strftime' for format.
     printf "%($1)T\\n" "-1"
 }
-BKP_USER=${BACKUP_USER:-'backup'}                                # user that will orchestrate the backups
-BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}             # where the backup will be stored
-BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-'/var/log/my-silly-borg'} # where the backup's logs will be stored
+BKP_USER=${BACKUP_USER:-'backup'}                     # user that will orchestrate the backups
+BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}  # where the backup will be stored
+BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-"$SHPWD/logs"} # where the backup's logs will be stored
 ARCHV_NM=$(hostname)_$(date %Y-%m-%dT%H:%M:%S)
 LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password

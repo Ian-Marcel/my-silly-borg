@@ -150,6 +150,11 @@ sudo -E borg create \
 
 backup_exit=$?
 
+if [ $backup_exit -ge 2 ]; then
+    echo -e "[ FATAL ] Backup finished with unrecoverable errors. \nSee log at $LOG_FILE \n\n[ EXIT ]"
+    exit 2
+fi
+
 # Use the `prune` subcommand to maintain 7 daily, 4 weekly and 6 monthly
 # archives of THIS machine. The '{hostname}_*' matching is very important to
 # limit prune's operation to this machine's archives and not apply to
@@ -169,6 +174,11 @@ sudo -E borg prune \
 
 prune_exit=$?
 
+if [ $prune_exit -ge 2 ]; then
+    echo -e "[ FATAL ] Backup pruning finished with unrecoverable errors. \nSee log at $LOG_FILE \n\n[ EXIT ]"
+    exit 2
+fi
+
 # actually free repo disk space by compacting segments
 
 echo -e "\n[ INFO ] Compacting repository\n"
@@ -177,13 +187,18 @@ sudo -E borg compact --verbose
 
 compact_exit=$?
 
+if [ $prune_exit -ge 2 ]; then
+    echo -e "[ FATAL ] Backup compaction finished with unrecoverable errors. \nSee log at $LOG_FILE \n\n[ EXIT ]"
+    exit 2
+fi
+
 echo -e "\n[ INFO ] Removing old logs"
 
 mapfile -t ALL_BACKUPS < <(sudo -E borg list --short)
 DELED_LOGS=0
-for file in "${BKP_LOG_DSTN}"/*.log; do
-    if [[ ! ${ALL_BACKUPS[*]} =~ $(basename "${file}" | sed 's/.log//g') ]]; then
-        rm --verbose "${file}"
+for LOG_FILES in "${BKP_LOG_DSTN}"/*.log; do
+    if [[ ! ${ALL_BACKUPS[*]} =~ $(basename "${LOG_FILES}" | sed 's/.log//g') ]]; then
+        rm --verbose "${LOG_FILES}"
         DELED_LOGS=$((DELED_LOGS + 1))
     fi
 done
@@ -200,8 +215,6 @@ if [ ${global_exit} -eq 0 ]; then
     echo -e "[ INFO ] Backup, Prune, and Compact finished successfully"
 elif [ ${global_exit} -eq 1 ]; then
     echo -e "[ WARN ] Backup, Prune, and/or Compact finished with warnings"
-else
-    echo -e "[ FATAL ] Backup, Prune, and/or Compact finished with errors \n\n[ EXIT ]"
 fi
 
 exit ${global_exit}

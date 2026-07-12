@@ -32,7 +32,7 @@ All variables are set in a `.env` file placed in the same directory as
 | `BACKUP_USER` | `backup` | User that must invoke the script |
 | `BACKUP_DESTINATION` | `/mnt/backup/data` | Root path of the Borg repository |
 | `BACKUP_LOG_STORAGE` | `<git repository>/logs` | Directory for backup logs |
-| `BACKUP_PASSWORD` | *(see [note](#backuppassword))* | Passphrase for repository encryption — **always override** |
+| `BACKUP_PASSWORD` | *(see [note](#backup_password))* | Passphrase for repository encryption — **always override** |
 | `BACKUP_ITEMS` | `/home` | Colon-separated list of paths to archive |
 
 ### `BACKUP_PASSWORD`

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 
 # Abort on any error (-e), unset variable reference (-u), or pipe failure (-o pipefail).
 # set -euo pipefail
@@ -26,15 +26,31 @@ date() {
 BKP_USER=${BACKUP_USER:-'backup'}                     # user that will orchestrate the backups
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}  # where the backup will be stored
 BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-"$SHPWD/logs"} # where the backup's logs will be stored
+BKP_CTP=${BACKUP_COMPRESSION_METHOD:-'zstd'}
 ARCHV_NM=$(hostname)_$(date %Y-%m-%dT%H:%M:%S)
 LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
-if [ -n "$BACKUP_ITEMS" ]; then
-    IFS=';'
-    read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
-else
-    BKP_ITMS=("/home")
-fi
+NOT_THESE_ITEMS=${NOT_THESE_ITEMS:-'*/.cache/*;*/cache/*;*/tmp/*'}
+backup_populator() {
+    local IFS=';'
+    if [ -n "$BACKUP_ITEMS" ]; then
+        read -ra BKP_ITMS <<<"${BACKUP_ITEMS}"
+    else
+        BKP_ITMS=("/home")
+    fi
+}
+backup_depopulator() {
+    local IFS=';'
+    for i in $NOT_THESE_ITEMS; do
+        if [ "${EXCLUDED_ITEMS:-}" ]; then
+            EXCLUDED_ITEMS="$EXCLUDED_ITEMS --exclude '$i'"
+        else
+            EXCLUDED_ITEMS="--exclude '$i'"
+        fi
+    done
+}
+backup_populator
+backup_depopulator
 
 # Ensure the backup destination and log storage directories both exist.
 # If either is absent, walk up the directory tree to verify write access
@@ -140,11 +156,9 @@ sudo -E borg create \
     --list \
     --stats \
     --show-rc \
-    --compression zstd \
+    --compression $BKP_CTP \
     --exclude-caches \
-    --exclude '*/.cache/*' \
-    --exclude '*/cache/*' \
-    --exclude '*/tmp/*' \
+    $EXCLUDED_ITEMS \
     ::"$ARCHV_NM" \
     ${BKP_ITMS[@]}
 

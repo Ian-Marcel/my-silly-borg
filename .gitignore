@@ -1,3 +1,4 @@
 .env
 logs/
 ssh/
+user-settings.conf

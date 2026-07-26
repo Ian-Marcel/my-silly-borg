@@ -113,6 +113,14 @@ if [ -f "$SHPWD/.env" ]; then
         echo -e "[ FATAL ] .env file permissions are $PERMS, which is too loose (max allowed: 600). \n\n[ EXIT 1 ]"
         exit 1
     fi
+elif [ -f "$SHPWD/user-settings.conf" ]; then
+    echo -e "[ INFO ] user-settings.conf file found, switching default values to user-settings.conf's values."
+    # Check if permissions are 600 or stricter (smaller octal value)
+    PERMS=$(stat -c '%a' "$SHPWD/user-settings.conf" 2>/dev/null || stat -f '%A' "$SHPWD/user-settings.conf" 2>/dev/null)
+    if [ "$PERMS" -gt 600 ]; then
+        echo -e "[ FATAL ] user-settings.conf file permissions are $PERMS, which is too loose (max allowed: 600). \n\n[ EXIT 1 ]"
+        exit 1
+    fi
 fi
 
 # ── Borg environment variables ────────────────────────────────────────────────

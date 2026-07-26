@@ -13,6 +13,8 @@ SHPWD=$(dirname "$SHPWD")
 # Load configuration overrides from .env if present alongside this script.
 if [ -f "$SHPWD/.env" ]; then
     source "$SHPWD/.env"
+elif [ -f "$SHPWD/user-settings.conf" ]; then
+    source "$SHPWD/user-settings.conf"
 fi
 
 # ── Backup configuration ──────────────────────────────────────────────────────

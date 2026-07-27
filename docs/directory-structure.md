@@ -4,8 +4,9 @@ Where the script itself lives:
 
 ```
 my-silly-borg/
-├── entrypoint.sh       # the script
-├── .env                # your settings (don't commit this to git)
+├── entrypoint.sh          # the script
+├── .env                   # your settings (don't commit this to git)
+│                          # — or use user-settings.conf instead, see Configuration
 └── ...
 ```
 

@@ -29,10 +29,11 @@ BKP_USER=${BACKUP_USER:-'backup'}                     # user that will orchestra
 BKP_DSTN=${BACKUP_DESTINATION:-'/mnt/my-silly-borg'}  # where the backup will be stored
 BKP_LOG_DSTN=${BACKUP_LOG_DESTINATION:-"$SHPWD/logs"} # where the backup's logs will be stored
 BKP_CTP=${BACKUP_COMPRESSION_METHOD:-'zstd'}
+BKP_LOG_FLTR=${BACKUP_LOG_FILTER:-'AMEC'}             # which item statuses show up in the backup log
 ARCHV_NM=$(hostname)_$(date %Y-%m-%dT%H:%M:%S)
 LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
-NOT_THESE_ITEMS=${NOT_THESE_ITEMS:-'**/.cache/**;**/cache/**;**/tmp/**'}
+BKP_EXCL_ITMS=${BACKUP_EXCLUDE_ITEMS:-'**/.cache/**;**/cache/**;**/tmp/**'}
 backup_populator() {
     local IFS=';'
     if [ -n "$BACKUP_ITEMS" ]; then
@@ -44,7 +45,7 @@ backup_populator() {
 backup_depopulator() {
     local IFS=';'
     local -a items
-    read -ra items <<<"$NOT_THESE_ITEMS"
+    read -ra items <<<"$BKP_EXCL_ITMS"
     EXCLUDED_ITEMS=()
     for i in "${items[@]}"; do
         EXCLUDED_ITEMS+=(--exclude "$i")
@@ -161,7 +162,7 @@ echo -e "[ INFO ] Starting backup\n"
 # the machine this script is currently running on:
 
 sudo -E borg create \
-    --filter ${BC_FILTER:-'AMEC'} \
+    --filter $BKP_LOG_FLTR \
     --list \
     --stats \
     --show-rc \

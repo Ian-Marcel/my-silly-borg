@@ -16,8 +16,10 @@ A few details, in case you're curious:
 - Any folder containing a `CACHEDIR.TAG` marker file is skipped automatically
   — this is a standard way build tools mark "this is just cache, don't back
   it up."
-- The log only lists files that were **A**dded, **M**odified, or had an
-  **E**rror — unchanged files aren't listed, to keep logs short.
+- By default, the log only lists files that were **A**dded, **M**odified,
+  had an **E**rror, or **C**hanged mid-backup — unchanged files aren't
+  listed, to keep logs short. This is configurable via `BACKUP_LOG_FILTER`, see
+  [Configuration](configuration.md).
 - A summary (size, space saved, etc.) is printed at the end.
 
 If `borg` (the backup program) isn't installed, the script tries to install it

@@ -1,20 +1,20 @@
 # my-silly-borg
 
-A stupid bash script that simplify [BorgBackup](https://www.borgbackup.org/) for you.
+A stupid bash script that simplifies [BorgBackup](https://www.borgbackup.org/) for you.
 
 ## Project scope
 
 ### This project will:
 
-- Automate the process of creating and managing backups,
-  deleting old one according to retention policy that you can set.
-- Provide an easy way to configure you backups, details in
+- Automate creating and managing backups, deleting old ones
+  according to a retention policy you can set.
+- Provide an easy way to configure your backups, details in
   [Configuration](docs/configuration.md).
 
 ### This project will NOT:
 
-- Handle restorations, head to BorgBackup
-  [official documentaion](https://borgbackup.readthedocs.io/en/stable/quickstart.html#restoring-a-backup)
+- Handle restorations, head to BorgBackup's
+  [official documentation](https://borgbackup.readthedocs.io/en/stable/quickstart.html#restoring-a-backup)
   for that.
 - Handle remote backups, this is trickier, so let me break this down real quick:
   1. NO BorgBackup [server repository](https://borgbackup.readthedocs.io/en/stable/usage/serve.html#borg-serve),
@@ -25,8 +25,8 @@ A stupid bash script that simplify [BorgBackup](https://www.borgbackup.org/) for
     because it'll be eating the same storage as the
     items being saved, but you can use an external
     HD/SSD to mitigate this limitation.
-      > I plan to add remote backups as it's a much more useful
-        than a server repository.
+      > I plan to add remote backups, as it's much more useful
+      > than a server repository.
 
 ## Prerequisites
 
@@ -40,27 +40,28 @@ A stupid bash script that simplify [BorgBackup](https://www.borgbackup.org/) for
   backup ALL=(ALL) NOPASSWD: SETENV: /usr/bin/borg
   ```
 > [!warning]
-> Not complying with these prerequisites could(and probably will)
+> Not complying with these prerequisites could (and probably will)
 > result in issues/failures when running the script.
 
 ## Quickstart
 
-1. [OPTIONAL] Create a specialized user for handling the backups as described in [Prerequisites](#prerequisites)..
+1. [OPTIONAL] Create a specialized user for handling the backups as described in [Prerequisites](#prerequisites).
 2. Grant this user the rights to use borg with sudo without password prompt as described in [Prerequisites](#prerequisites).
 3. Download this project repository with `git clone`.
-4. Add configuration file (`.env` or `user-settings.conf`) in the project folder.
+4. Add a configuration file (`.env` or `user-settings.conf`) in the project folder.
 5. In this file, at minimum, set your own `BACKUP_PASSWORD` and the folders you
    want backed up (`BACKUP_ITEMS`). See [Configuration](docs/configuration.md)
    for every setting.
-6. Lock down the you're settings file so only its owner can read it:
+6. Lock down your settings file so only its owner can read it:
 
    ```sh
    chmod 600 .env # or user-settings.conf
    ```
 7. Run it as the backup user:
-  ```sh
-  sudo -u <user> ./entrypoint.sh
-  ```
+
+   ```sh
+   sudo -u <user> ./entrypoint.sh
+   ```
 
 That's it — the script backs up your files, deletes old backups you no
 longer need, and cleans up its own logs. See [Usage](docs/usage.md) for the

@@ -1,8 +1,9 @@
 # Configuration
 
-All settings live in a file called `.env`, placed in the same folder as
-`entrypoint.sh`. If a setting is missing from `.env`, the script uses its
-built-in default instead.
+All settings live in a file placed in the same folder as `entrypoint.sh`,
+called either `.env` or `user-settings.conf` — pick whichever name you like.
+If both exist, `.env` wins and `user-settings.conf` is ignored. If a setting
+is missing from your file, the script uses its built-in default instead.
 
 ## All the settings
 
@@ -13,8 +14,9 @@ built-in default instead.
 | `BACKUP_LOG_DESTINATION` | `<folder containing entrypoint.sh>/logs` | Where log files are saved |
 | `BACKUP_PASSWORD` | *(a placeholder — see below)* | The password that locks your backup |
 | `BACKUP_ITEMS` | `/home` | The folders you want backed up |
-| `NOT_THESE_ITEMS` | `*/.cache/*;*/cache/*;*/tmp/*` | The folders you want skipped |
+| `BACKUP_EXCLUDE_ITEMS` | `**/.cache/**;**/cache/**;**/tmp/**` | The folders you want skipped |
 | `BACKUP_COMPRESSION_METHOD` | `zstd` | How the backup data gets compressed |
+| `BACKUP_LOG_FILTER` | `AMEC` | Which file statuses show up in the backup log |
 | `KEEP_HOURLY` | `0` | How many hourly backups to keep |
 | `KEEP_DAILY` | `7` | How many daily backups to keep |
 | `KEEP_WEEKLY` | `4` | How many weekly backups to keep |
@@ -46,17 +48,20 @@ into two, breaking the backup. Avoid `;` in folder names.
 
 If you don't set this, the script backs up `/home`.
 
-## `NOT_THESE_ITEMS` — what to skip
+## `BACKUP_EXCLUDE_ITEMS` — what to skip
 
 List patterns to skip, also separated by `;`:
 
 ```sh
-NOT_THESE_ITEMS='*/.cache/*;*/cache/*;*/tmp/*;*/node_modules/*'
+BACKUP_EXCLUDE_ITEMS='**/.cache/**;**/cache/**;**/tmp/**;**/node_modules/**'
 ```
 
-One thing to know: Borg's patterns work a little differently than you might
-expect. To skip a folder no matter how deep it is, start the pattern with
-`*/`, like `*/.cache/*` — not just `.cache/*`.
+One thing to know: with these patterns, a single `*` already matches through
+folder slashes, so `*/.cache/*` and `**/.cache/**` skip the exact same
+folders — the extra `*`s don't add any extra matching power, they're just
+there to make "match at any depth" more obvious to read. Either style works;
+just don't drop the leading `*` (or `**`), or the pattern will only match
+`.cache` at the very top level instead of everywhere.
 
 If you don't set this, the script skips cache and temp folders by default.
 
@@ -82,6 +87,27 @@ sure, the default (`zstd`) is a good choice.
 BACKUP_COMPRESSION_METHOD='lzma,6'
 ```
 
+## `BACKUP_LOG_FILTER` — what shows up in the backup log
+
+Every file the script backs up gets a one-letter status in the log. This
+setting picks which statuses actually get printed. The letters:
+
+| Letter | Meaning |
+|---|---|
+| `A` | File is new (Added) |
+| `M` | File changed since last backup (Modified) |
+| `E` | Something went wrong reading this file (Error) |
+| `C` | File changed *while* it was being backed up |
+| `U` | File is unchanged since last backup |
+
+By default (`AMEC`) the log shows new, changed, errored, and
+changed-mid-backup files, but hides unchanged ones — that's usually all you
+care about. If you want to see everything, including unchanged files, set:
+
+```sh
+BACKUP_LOG_FILTER='AMEUC'
+```
+
 ## Example `.env` file
 
 ```sh
@@ -90,8 +116,9 @@ BACKUP_DESTINATION='/mnt/backup/data'
 BACKUP_LOG_DESTINATION='/mnt/backup/log'
 BACKUP_PASSWORD='your-strong-passphrase-here'
 BACKUP_ITEMS='/home;/etc;/var/lib/postgresql'
-NOT_THESE_ITEMS='*/.cache/*;*/cache/*;*/tmp/*'
+BACKUP_EXCLUDE_ITEMS='**/.cache/**;**/cache/**;**/tmp/**'
 BACKUP_COMPRESSION_METHOD='zstd'
+BACKUP_LOG_FILTER='AMEC'
 KEEP_HOURLY='0'
 KEEP_DAILY='7'
 KEEP_WEEKLY='4'
@@ -100,11 +127,12 @@ KEEP_MONTHLY='6'
 
 ## File permissions
 
-The `.env` file must not be readable by anyone but the owner — permissions of
-`600` or stricter. If it's looser than that, the script refuses to run.
+Whichever settings file you use (`.env` or `user-settings.conf`) must not be
+readable by anyone but the owner — permissions of `600` or stricter. If it's
+looser than that, the script refuses to run.
 
 ```sh
-chmod 600 .env
+chmod 600 .env # or user-settings.conf
 ```
 
 [← Back to README](../README.md)

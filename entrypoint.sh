@@ -161,7 +161,7 @@ echo -e "[ INFO ] Starting backup\n"
 # the machine this script is currently running on:
 
 sudo -E borg create \
-    --filter ${BC_FILTER:-'AME'} \
+    --filter ${BC_FILTER:-'AMEC'} \
     --list \
     --stats \
     --show-rc \

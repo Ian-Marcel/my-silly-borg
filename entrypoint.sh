@@ -32,7 +32,7 @@ BKP_CTP=${BACKUP_COMPRESSION_METHOD:-'zstd'}
 ARCHV_NM=$(hostname)_$(date %Y-%m-%dT%H:%M:%S)
 LOG_FILE="${BKP_LOG_DSTN}/${ARCHV_NM}.log"
 BKP_PASSWD=${BACKUP_PASSWORD:-'VvlNeR4bL3_-_r3P0'} # backup password
-NOT_THESE_ITEMS=${NOT_THESE_ITEMS:-'*/.cache/*;*/cache/*;*/tmp/*'}
+NOT_THESE_ITEMS=${NOT_THESE_ITEMS:-'**/.cache/**;**/cache/**;**/tmp/**'}
 backup_populator() {
     local IFS=';'
     if [ -n "$BACKUP_ITEMS" ]; then

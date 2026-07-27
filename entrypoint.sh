@@ -43,12 +43,11 @@ backup_populator() {
 }
 backup_depopulator() {
     local IFS=';'
-    for i in $NOT_THESE_ITEMS; do
-        if [ "${EXCLUDED_ITEMS:-}" ]; then
-            EXCLUDED_ITEMS="$EXCLUDED_ITEMS --exclude '$i'"
-        else
-            EXCLUDED_ITEMS="--exclude '$i'"
-        fi
+    local -a items
+    read -ra items <<<"$NOT_THESE_ITEMS"
+    EXCLUDED_ITEMS=()
+    for i in "${items[@]}"; do
+        EXCLUDED_ITEMS+=(--exclude "$i")
     done
 }
 backup_populator
@@ -168,7 +167,7 @@ sudo -E borg create \
     --show-rc \
     --compression $BKP_CTP \
     --exclude-caches \
-    $EXCLUDED_ITEMS \
+    "${EXCLUDED_ITEMS[@]}" \
     ::"$ARCHV_NM" \
     ${BKP_ITMS[@]}
 
